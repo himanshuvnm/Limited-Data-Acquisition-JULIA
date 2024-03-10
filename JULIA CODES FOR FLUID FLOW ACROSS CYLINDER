@@ -1,1 +1,5 @@
-C
+import Pkg; Pkg.add("MAT")
+import Pkg; Pkg.add("JuMP")
+import Pkg; Pkg.add("Symbolics")
+import Pkg; Pkg.add("SymPy")
+import Pkg; Pkg.add("PyPlot")
