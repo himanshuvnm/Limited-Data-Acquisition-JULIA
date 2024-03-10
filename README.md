@@ -1,0 +1,1 @@
+The above codes are given in JULIA for executing Dyanamic Mode Decomposition with Limited Data Acquisition. The paper for this code corresponds to https://arxiv.org/abs/2312.12630 which is entitled as 'Data-driven discovery with Limited Data Acquisition for fluid flow across cylinder'.
