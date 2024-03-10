@@ -3,3 +3,50 @@ import Pkg; Pkg.add("JuMP")
 import Pkg; Pkg.add("Symbolics")
 import Pkg; Pkg.add("SymPy")
 import Pkg; Pkg.add("PyPlot")
+
+using MAT
+using Random
+using LinearAlgebra
+using JuMP
+using Symbolics
+using SymPy
+using PyPlot
+
+rng = MersenneTwister(1234);
+fileIn = matopen("CYLINDER_ALL.mat")
+dset = read(fileIn,"UALL")
+close(fileIn)
+
+snaps_have=125;
+knowpart=dset[:,1:snaps_have];
+paddingpart=randn(rng, (89351, 151-snaps_have));
+paddingpart_transpose=paddingpart';
+pinv_paddingpart_transpose=pinv(paddingpart_transpose);
+
+W=[dset[:,1:snaps_have] pinv_paddingpart_transpose];
+
+TotalSnapshots = size(W,2);
+TotalKernels = size(W,2) - 1;
+mu = 5.00;
+
+x= Sym("x"); y= Sym("y"); Kernel(x,y)=exp(-1/mu*norm(x-y));
+
+GramMatrix=[Kernel(W[:,i],W[:,j]) for i in 1:TotalKernels, j in 1:TotalKernels];
+InteractionMatrix=[Kernel(W[:,i],W[:,j+1]) for i in 1:TotalKernels, j in 1:TotalKernels];
+
+D=eigvals(pinv(GramMatrix)*InteractionMatrix);#eigen-values
+D=Diagonal(D);#diagonal matrix of eigen-values
+V=eigvecs(pinv(GramMatrix)*InteractionMatrix);#eigen-vectors
+V=[V[i,j]/sqrt(V[:,j]'*GramMatrix*V[:,j]) for i in 1:size(V,2), j in 1:size(V,2)]; #normalization
+
+KoopmanModes = pinv(GramMatrix*V)*W[:,1:end-1]';
+KoopmanModes = KoopmanModes';#Koopman-Modes
+
+img=imshow(real(reshape(KoopmanModes[:,61],(199,:))))
+colorbar()
+title("Koopman Mode(s)-150 with 151 snaps")
+
+colormap=(:gnuplot)
+img=matplotlib.pyplot.imshow(imag(reshape(KoopmanModes[:,61],(199,:))),colormap)
+colorbar()
+title("Koopman Mode(s)-61 with 3 snaps")
